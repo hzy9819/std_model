@@ -1,44 +1,38 @@
-#include<iostream>
-#include<cstdio>
-#include<cstring>
-#include<algorithm>
-using namespace std;
-int l[10005],f[10005],a[10],s[10],ans[10005],head,tot;
-int main()
+ 
+const int N=20010,M=1000100;
+ 
+int n,m,a[N];
+ 
+int buc[M],sa1[N],sa2[N],rk1[N],rk2[N],ht[N];
+int *sa=sa1,*rk=rk1,*tp=sa2,*tmp=rk2;
+ 
+void getsa()
 {
-    int n,m;
-   // freopen("input.txt","r",stdin);
-   // freopen("output.txt","w",stdout);
-    cin>>n>>m;
-    for(int i=1;i<=n;i++)
-    {
-        scanf("%d",&l[i]);
-        s[l[i]]++;//桶排
-    }
-    for(int i=1;i<=m;i++)
-    {
-        a[i]=a[i-1]+s[i-1];//前缀和
-        for(int j=1;j<=s[i];j++)
-        {
-            f[++head]=i;
-        }
-    }
-    tot=n+1;
-    ans[--tot]=l[1];
-    int now=l[1];
-    //for(int i=1;i<=m;i++)
-    //a[i]++;
-    int pos=1;
-    for(int i=n;i>0;i--)
-    {
-        ans[i]=l[pos];//答案
-        int x=l[pos];//对应前缀和
-        pos=a[x]+count(l+1,l+pos+1,x);//查找相同字符的对应位置
-    }
-    for(int i=1;i<=n-1;i++)
-    {
-        printf("%d ",ans[i]);
-    }
-    printf("%d",ans[n]);
-    puts("");
+	register int i,j,k;
+	register bool flag=0;
+	for(i=1;i<=n;++i)buc[a[i]]++;
+	for(i=1;i<M;++i)buc[i]+=buc[i-1];
+	for(i=n;i;i--)sa[buc[a[i]]--]=i;
+	for(i=1;i<=n;++i)rk[sa[i]]=rk[sa[i-1]]+(a[sa[i]]!=a[sa[i-1]]);
+	
+	for(k=1;k<=n;k<<=1)
+	{
+		for(i=1;i<=n;++i)buc[rk[sa[i]]]=i;
+		for(i=n;i;i--)if(sa[i]>k)tp[buc[rk[sa[i]-k]]--]=sa[i]-k;
+		for(i=n-k+1;i<=n;++i)tp[buc[rk[i]--]]=i;
+		for(i=1;i<=n;++i)
+		{
+			tmp[tp[i]]=tmp[tp[i-1]]+(rk[tp[i-1]]!=rk[tp[i]]||rk[tp[i-1]+k]!=rk[tp[i]+k]);
+			if(tmp[tp[i]]==n)flag=1;
+		}
+		swap(rk,tmp);swap(sa,tp);if(flag)break;
+	}
+	
+	k=0;
+	for(i=1;i<n;++i)
+	{
+		j=rk[i]-1;
+		while(a[sa[rk[i]]+k]==a[sa[j]+k])k++;
+		ht[rk[i]]=k;if(k)k--;
+	}
 }
