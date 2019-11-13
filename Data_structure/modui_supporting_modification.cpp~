@@ -1,0 +1,145 @@
+#include<cmath>
+#include<ctime>
+#include<cstdio>
+#include<cstring>
+#include<cstdlib>
+#include<iostream>
+#include<algorithm>
+#include<iomanip>
+#include<vector>
+#include<string>
+#include<bitset>
+#include<queue>
+#include<map>
+#include<set>
+using namespace std;
+ 
+inline int read()
+{
+	int x=0,f=1;char ch=getchar();
+	while(ch<'0'||ch>'9'){if(ch=='-')f=-1;ch=getchar();}
+	while(ch<='9'&&ch>='0'){x=x*10+ch-'0';ch=getchar();}
+	return x*f;
+}
+void print(int x)
+{if(x<0)putchar('-'),x=-x;if(x>=10)print(x/10);putchar(x%10+'0');}
+ 
+const int N=200100;
+ 
+int block,bel[N>>1];
+ 
+struct Query
+{
+	int t,l,r,pos;
+	// t : the number of change queries before
+	friend bool operator <(const Query &x,const Query &y)
+	{return bel[x.t]==bel[y.t] ? (bel[x.l]==bel[y.l] ? x.r<y.r : bel[x.l]<bel[y.l]) : bel[x.t]<bel[y.t];}
+	
+}q[N>>1];
+ 
+int P[N>>1],X[N>>1],Y[N>>1];
+int pre[N>>1],a[N>>1],st[N],top;
+ 
+inline int get_hash(int x)
+{
+	int l(1),r(top),mid;
+	while(l<=r)
+	{
+		mid=l+r>>1;
+		st[mid]<=x ? l=mid+1 : r=mid-1 ;
+	}
+	return l-1;
+}
+ 
+int tot;
+ 
+int c[N],size[N];
+ 
+inline void modify(int x,int val)
+{size[c[x]]--;c[x]+=val;size[c[x]]++;}
+ 
+inline int query()
+{int res(1);while(size[res])res++;return res;}
+ 
+int ans[N>>1];
+ 
+void modui()
+{
+	register int i,l(1),r(0),t(0);
+	for(i = 1; i <= tot; ++i)
+	{
+		while (t < q[i].t)
+			if (P[t + 1] <= r && P[t + 1] >= l)
+				t++,
+				    modify(Y[t] ,-1),
+					modify(X[t] ,1),
+					a[P[t]] = X[t];
+			else
+				t++,
+					a[P[t]] = X[t];
+		while (t > q[i].t)
+			if (P[t] <= r && P[t] >= l)
+				modify(X[t] ,-1)
+					,modify(Y[t] ,1),
+					a[P[t]] = Y[t],
+					t--;
+			else a[P[t]]=Y[t],t--;
+		while(r<q[i].r) r++,modify(a[r],1);
+		while(l>q[i].l) l--,modify(a[l],1);
+		while(r>q[i].r) modify(a[r],-1),r--;
+		while(l<q[i].l) modify(a[l],-1),l++;
+		ans[q[i].pos]=query();
+	}
+}
+ 
+int main()
+{
+	int n=read(),Q=read();
+	
+	register int i(1),j,opt,now,tmp(1);
+	
+	while(i*i*i<n) i++;
+	block=i*i;
+	for(i=j=now=1;i<=n;++i,++j)
+	{
+		bel[i]=now;
+		if(j==block) now++,j=0;
+	}
+	
+	for(i=1;i<=n;++i) a[i]=read();
+	memcpy(pre,a,sizeof(int)*(n+1));
+	for(i=1,now=0;i<=Q;++i)
+	{
+		opt=read();
+		switch(opt)
+		{
+			case 1:
+				q[++tot].t=now;q[tot].pos=tot;
+				q[tot].l=read();q[tot].r=read();
+				break;
+			case 2:
+				P[++now]=read();
+				Y[now]=pre[P[now]];
+				pre[P[now]]=X[now]=read();
+				break;
+		}
+	}
+	sort(q+1,q+1+tot);
+	
+	top=n+now;
+	memcpy(st,a,sizeof(int)*(n+1));
+	memcpy(st+n+1,X+1,sizeof(int)*now);
+	sort(st+1,st+1+top);
+	for(i=2;i<=top;++i)
+		if(st[i]!=st[i-1])
+			st[++tmp]=st[i];
+	top=tmp;
+	for(i=1;i<=n;++i) a[i]=get_hash(a[i]);
+	for(i=1;i<=now;++i) X[i]=get_hash(X[i]),Y[i]=get_hash(Y[i]);
+	
+	modui();
+	
+	for(i=1;i<=tot;++i)
+		print(ans[i]),puts("");
+	return 0;
+}
